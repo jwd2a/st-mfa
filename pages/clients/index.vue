@@ -201,7 +201,7 @@ const getInitials = (name: string) => {
 
 // Function to navigate to client details
 const navigateToClient = (id: string) => {
-  // Implement navigation logic here
-  console.log(`Navigating to client details: ${id}`);
+  // Use Nuxt's router to navigate to the client details page
+  navigateTo(`/clients/${id}`);
 };
 </script> 

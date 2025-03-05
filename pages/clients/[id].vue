@@ -106,9 +106,6 @@
                   <div class="ml-4">
                     <div class="flex items-center">
                       <h2 class="text-sm font-medium text-gray-900 dark:text-gray-100">+{{ phone.number }}</h2>
-                      <span v-if="phone.isPrimary" class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary">
-                        Primary
-                      </span>
                     </div>
                     <div class="mt-1 flex items-center">
                       <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -248,14 +245,12 @@ const client = ref({
     {
       number: '15551234567',
       label: 'Work',
-      services: ['Google', 'Microsoft', 'GitHub'],
-      isPrimary: true
+      services: ['Google', 'Microsoft', 'GitHub']
     },
     {
       number: '15559876543',
       label: 'Personal',
-      services: ['AWS', 'Salesforce'],
-      isPrimary: false
+      services: ['AWS', 'Salesforce']
     }
   ]
 });
