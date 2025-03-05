@@ -83,9 +83,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button @click.stop="navigateToClient(client.id)" class="text-primary hover:text-primary/80">
-                  View
-                </button>
+                <!-- View button removed - entire row is clickable -->
               </td>
             </tr>
           </tbody>
@@ -110,11 +108,9 @@
               {{ client.status }}
             </span>
           </div>
-          <div class="mt-2 flex justify-between items-center">
+          <div class="mt-2">
             <p class="text-xs text-gray-500 dark:text-gray-400">{{ client.phoneNumbers.length }} phone numbers</p>
-            <button @click.stop="navigateToClient(client.id)" class="text-xs text-primary hover:text-primary/80">
-              View details
-            </button>
+            <!-- View details button removed - entire card is clickable -->
           </div>
         </li>
       </ul>

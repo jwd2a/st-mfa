@@ -40,11 +40,9 @@
     </div>
     
     <!-- Messages list -->
-    <div 
-      class="bg-white dark:bg-gray-800 shadow overflow-hidden rounded-lg h-[calc(100vh-240px)] overflow-y-auto"
-    >
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
       <!-- Empty state when no unread messages -->
-      <div v-if="statusFilter === 'unread' && unreadCount === 0" class="flex flex-col items-center justify-center h-full py-12 px-4 text-center">
+      <div v-if="statusFilter === 'unread' && unreadCount === 0" class="flex flex-col items-center justify-center py-12 px-4 text-center">
         <div class="bg-gray-100 dark:bg-gray-700 rounded-full p-4 mb-4">
           <Icon name="lucide:check-circle" class="h-12 w-12 text-primary" />
         </div>
@@ -60,9 +58,9 @@
         </button>
       </div>
       
-      <ul v-else ref="messagesList" role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+      <ul v-else role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
         <li 
-          v-for="(message, index) in displayedMessages" 
+          v-for="(message, index) in filteredMessages" 
           :key="index" 
           class="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700"
           :class="{'bg-primary/5 dark:bg-primary/10': !message.read}"
@@ -110,28 +108,23 @@
               </span>
             </div>
           </div>
-          <div class="mt-2 sm:flex sm:justify-between">
-            <div class="sm:flex">
-              <p 
-                class="mt-2 text-sm font-mono p-2 rounded w-full"
-                :class="message.read 
-                  ? 'text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700' 
-                  : 'text-gray-900 dark:text-white font-medium bg-gray-100 dark:bg-gray-700 border-l-4 border-primary'"
-              >
-                {{ message.content }}
-              </p>
-            </div>
-          </div>
-          <div class="mt-2 flex justify-end space-x-2">
-            <button type="button" class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-primary hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-              <Icon name="lucide:share" class="mr-1 h-3.5 w-3.5" />
-              Forward
-            </button>
+          
+          <!-- Message content and actions on the same line -->
+          <div class="mt-2 flex items-start justify-between">
+            <p 
+              class="text-sm font-mono p-2 rounded flex-grow"
+              :class="message.read 
+                ? 'text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700' 
+                : 'text-gray-900 dark:text-white font-medium bg-gray-100 dark:bg-gray-700 border-l-4 border-primary'"
+            >
+              {{ message.content }}
+            </p>
+            
             <button 
               v-if="!message.read"
               @click="markAsRead(message)"
               type="button" 
-              class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              class="ml-4 mt-1 inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary whitespace-nowrap"
             >
               <Icon name="lucide:check" class="mr-1 h-3.5 w-3.5" />
               Mark as read
@@ -142,38 +135,17 @@
         <li v-if="filteredMessages.length === 0 && statusFilter !== 'unread'" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
           No messages found
         </li>
-        
-        <!-- Loading indicator for infinite scroll -->
-        <li v-if="isLoading && displayedMessages.length > 0" class="px-4 py-4 text-center">
-          <div class="flex justify-center items-center space-x-2">
-            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-            <span class="text-sm text-gray-500 dark:text-gray-400">Loading more messages...</span>
-          </div>
-        </li>
-        
-        <!-- "End of messages" indicator -->
-        <li v-if="isEndOfList && displayedMessages.length > 0" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-          End of messages
-        </li>
       </ul>
-      
-      <!-- Invisible trigger for loading more -->
-      <div ref="scrollTrigger" class="h-1"></div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed } from 'vue';
 
 const searchQuery = ref('');
 const clientFilter = ref('');
 const statusFilter = ref('unread'); // Default to unread messages
-const messagesList = ref(null);
-const scrollTrigger = ref(null);
-const displayLimit = ref(5); // Initial number of messages to display
-const isLoading = ref(false);
-const isEndOfList = ref(false);
 
 // Interface for message
 interface Message {
@@ -271,7 +243,7 @@ const messages = ref<Message[]>([
   }
 ]);
 
-// Generate more mock messages for infinite scroll demonstration
+// Generate more mock messages for demonstration
 for (let i = 0; i < 20; i++) {
   const baseMessage = messages.value[i % messages.value.length]; // Reuse the existing messages
   messages.value.push({
@@ -313,13 +285,6 @@ const filteredMessages = computed(() => {
   });
 });
 
-// Displayed messages (limited by the displayLimit for infinite scroll)
-const displayedMessages = computed(() => {
-  const result = filteredMessages.value.slice(0, displayLimit.value);
-  isEndOfList.value = result.length >= filteredMessages.value.length;
-  return result;
-});
-
 // Function to mark a message as read
 const markAsRead = (message: Message) => {
   // Find the message in the messages array
@@ -337,49 +302,4 @@ const markAsRead = (message: Message) => {
     }
   }
 };
-
-// Load more messages
-const loadMoreMessages = () => {
-  // Don't load more if we're already loading or at the end of the list
-  if (isLoading.value || isEndOfList.value) return;
-  
-  isLoading.value = true;
-  
-  // Simulate network delay
-  setTimeout(() => {
-    // Increase the display limit to show more messages
-    displayLimit.value += 5;
-    isLoading.value = false;
-  }, 500);
-};
-
-// Reset displayLimit when filters change
-watch([statusFilter, searchQuery, clientFilter], () => {
-  displayLimit.value = 5;
-  
-  // Reset scroll position
-  if (messagesList.value) {
-    const container = (messagesList.value as HTMLElement).parentElement;
-    if (container) {
-      container.scrollTop = 0;
-    }
-  }
-});
-
-// Set up intersection observer for infinite scroll
-onMounted(() => {
-  // Initial check if we need to show "end of list"
-  isEndOfList.value = displayedMessages.value.length >= filteredMessages.value.length;
-  
-  // Set up intersection observer for infinite scroll
-  if (scrollTrigger.value) {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && !isLoading.value && !isEndOfList.value) {
-        loadMoreMessages();
-      }
-    }, { rootMargin: '100px' });
-    
-    observer.observe(scrollTrigger.value);
-  }
-});
 </script> 
