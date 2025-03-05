@@ -67,7 +67,11 @@
           </div>
           
           <div class="flex items-center space-x-4">
-            
+            <!-- Theme toggle button -->
+            <button type="button" @click="toggleTheme" class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+              <Icon v-if="isDarkMode" name="lucide:sun" class="w-5 h-5" />
+              <Icon v-else name="lucide:moon" class="w-5 h-5" />
+            </button>
             
             <button type="button" class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
               <Icon name="lucide:help-circle" class="w-5 h-5" />
@@ -85,8 +89,39 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
+
 const route = useRoute();
 const isSidebarOpen = ref(false);
+
+// Theme toggle functionality
+const isDarkMode = ref(false);
+
+// Check system preference and localStorage on mount
+onMounted(() => {
+  // Check for saved theme preference or use system preference
+  const savedTheme = localStorage.getItem('theme');
+  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  isDarkMode.value = savedTheme === 'dark' || (savedTheme === null && systemPrefersDark);
+  applyTheme();
+});
+
+// Toggle between light and dark theme
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value;
+  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light');
+  applyTheme();
+};
+
+// Apply theme to document
+const applyTheme = () => {
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+};
 
 // Compute page title based on route
 const pageTitle = computed(() => {
