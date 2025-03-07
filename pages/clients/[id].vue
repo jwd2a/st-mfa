@@ -96,44 +96,51 @@
       <div class="border-t border-gray-200 dark:border-gray-700">
         <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
           <li v-for="(phone, index) in client.phoneNumbers" :key="index" class="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700">
-            <div class="flex items-center justify-between">
-              <div class="flex flex-col md:flex-row md:items-center md:space-x-4">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0">
-                    <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Icon name="lucide:phone" class="h-5 w-5 text-primary" />
-                    </div>
-                  </div>
-                  <div class="ml-4">
-                    <div class="flex items-center">
-                      <h2 class="text-sm font-medium text-gray-900 dark:text-gray-100">+{{ phone.number }}</h2>
-                      <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-500">
-                        Active
-                      </span>
-                    </div>
-                    <div class="mt-1 flex items-center">
-                      <p class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ phone.label || 'Unlabeled' }}
-                      </p>
-                    </div>
+            <div class="flex items-start justify-between">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Icon name="lucide:phone" class="h-5 w-5 text-primary" />
                   </div>
                 </div>
-                
-                <div class="mt-2 md:mt-0 flex flex-wrap gap-1">
-                  <span 
-                    v-for="(service, sIndex) in phone.services" 
-                    :key="sIndex" 
-                    class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/20 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-400"
-                  >
-                    {{ service }}
-                  </span>
-                  <span v-if="!phone.services || phone.services.length === 0" class="text-xs text-gray-500 dark:text-gray-400">
-                    No services specified
-                  </span>
+                <div class="ml-4">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="text-sm font-medium text-gray-900 dark:text-gray-100">+{{ phone.number }}</h2>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-500">
+                      Active
+                    </span>
+                    
+                    <!-- Service Labels -->
+                    <div class="flex flex-wrap gap-1">
+                      <span 
+                        v-for="(service, sIndex) in phone.services" 
+                        :key="sIndex" 
+                        class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/20 px-2 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-400"
+                      >
+                        {{ service }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="mt-1 flex items-center">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ phone.label || 'Unlabeled' }}
+                    </p>
+                    <span v-if="!phone.services || phone.services.length === 0" class="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                      No services specified
+                    </span>
+                  </div>
                 </div>
               </div>
               
-              <div class="flex items-center space-x-2">
+              <div class="flex space-x-2">
+                <button 
+                  type="button" 
+                  @click="managePhoneAccess(index)"
+                  class="inline-flex items-center p-1.5 border border-gray-300 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                >
+                  <Icon name="lucide:users" class="h-4 w-4" />
+                  <span class="sr-only">Manage access</span>
+                </button>
                 <button 
                   type="button" 
                   @click="editPhoneNumber(index)"
@@ -150,6 +157,70 @@
                   <Icon name="lucide:trash-2" class="h-4 w-4" />
                   <span class="sr-only">Remove phone number</span>
                 </button>
+              </div>
+            </div>
+
+            <!-- User Access Information -->
+            <div class="mt-2 ml-14 border-t border-gray-100 dark:border-gray-700 pt-2">
+              <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <Icon name="lucide:users" class="h-4 w-4 mr-1" />
+                <span>
+                  {{ 
+                    phone.assignedUsers && phone.assignedUsers.length > 0
+                      ? `${phone.assignedUsers.length} user${phone.assignedUsers.length > 1 ? 's' : ''} have access`
+                      : 'No users assigned'
+                  }}
+                </span>
+                <div v-if="phone.assignedUsers && phone.assignedUsers.length > 0" class="ml-2 flex -space-x-1 overflow-hidden">
+                  <div
+                    v-for="(user, uIndex) in phone.assignedUsers.slice(0, 3)"
+                    :key="uIndex"
+                    class="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800"
+                  >
+                    <template v-if="'avatar' in user && user.avatar">
+                      <div 
+                        class="h-6 w-6 rounded-full bg-cover bg-center"
+                        :style="{ backgroundImage: `url(${user.avatar})` }"
+                      ></div>
+                    </template>
+                    <template v-else>
+                      <div 
+                        class="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300"
+                      >
+                        {{ user.name.charAt(0) }}
+                      </div>
+                    </template>
+                  </div>
+                  <div
+                    v-if="phone.assignedUsers.length > 3"
+                    class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 ring-2 ring-white dark:ring-gray-800"
+                  >
+                    +{{ phone.assignedUsers.length - 3 }}
+                  </div>
+                </div>
+              </div>
+              <div v-if="phone.assignedTeams && phone.assignedTeams.length > 0" class="flex items-center mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <Icon name="lucide:users-2" class="h-4 w-4 mr-1" />
+                <span>
+                  {{ 
+                    `${phone.assignedTeams.length} team${phone.assignedTeams.length > 1 ? 's' : ''} have access`
+                  }}
+                </span>
+                <div class="ml-2 flex flex-wrap gap-1">
+                  <span 
+                    v-for="(team, tIndex) in phone.assignedTeams.slice(0, 2)" 
+                    :key="tIndex" 
+                    class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300"
+                  >
+                    {{ team.name }}
+                  </span>
+                  <span 
+                    v-if="phone.assignedTeams.length > 2" 
+                    class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300"
+                  >
+                    +{{ phone.assignedTeams.length - 2 }} more
+                  </span>
+                </div>
               </div>
             </div>
           </li>
@@ -362,11 +433,259 @@
         </div>
       </div>
     </div>
+
+    <!-- Manage Phone Access Modal -->
+    <div v-if="showManageAccessModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+          <div>
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-primary/10">
+              <Icon name="lucide:users" class="h-6 w-6 text-primary" aria-hidden="true" />
+            </div>
+            <div class="mt-3 text-center sm:mt-5">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
+                Manage Access to +{{ selectedPhone ? selectedPhone.number : '' }}
+              </h3>
+              <div class="mt-2">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Control which users and teams have access to this 2FA number.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <div class="space-y-6">
+              <!-- User Access Section -->
+              <div>
+                <div class="flex justify-between items-center mb-3">
+                  <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">Users with Access</h4>
+                  <button 
+                    @click="showAddUserDropdown = !showAddUserDropdown" 
+                    class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  >
+                    <Icon name="lucide:plus" class="-ml-0.5 mr-1 h-4 w-4" />
+                    Add User
+                  </button>
+                </div>
+
+                <!-- Add User Dropdown -->
+                <div v-if="showAddUserDropdown" class="relative z-10 mb-4">
+                  <div class="absolute right-0 w-60 mt-1 bg-white dark:bg-gray-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600">
+                    <div class="p-2">
+                      <input 
+                        v-model="userSearchQuery" 
+                        type="text" 
+                        placeholder="Search users..." 
+                        class="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-800 dark:text-white" 
+                      />
+                    </div>
+                    <ul class="max-h-40 overflow-y-auto py-1 divide-y divide-gray-200 dark:divide-gray-600">
+                      <li 
+                        v-for="(user, index) in filteredAvailableUsers" 
+                        :key="index" 
+                        @click="addUserToPhone(user)"
+                        class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
+                      >
+                        <div class="flex items-center">
+                          <template v-if="'avatar' in user && user.avatar">
+                            <div 
+                              class="h-8 w-8 rounded-full bg-cover bg-center mr-2"
+                              :style="{ backgroundImage: `url(${user.avatar})` }"
+                            ></div>
+                          </template>
+                          <template v-else>
+                            <div 
+                              class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-300 mr-2"
+                            >
+                              {{ user.name.charAt(0) }}
+                            </div>
+                          </template>
+                          <div>
+                            <div class="font-medium">{{ user.name }}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email }}</div>
+                          </div>
+                        </div>
+                      </li>
+                      <li v-if="filteredAvailableUsers.length === 0" class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                        No matching users found
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-md overflow-hidden border border-gray-200 dark:border-gray-600">
+                  <ul class="divide-y divide-gray-200 dark:divide-gray-600">
+                    <li 
+                      v-for="(user, index) in selectedPhone?.assignedUsers || []" 
+                      :key="index"
+                      class="px-4 py-3 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      <div class="flex items-center">
+                        <template v-if="'avatar' in user && user.avatar">
+                          <div 
+                            class="h-8 w-8 rounded-full bg-cover bg-center mr-2"
+                            :style="{ backgroundImage: `url(${user.avatar})` }"
+                          ></div>
+                        </template>
+                        <template v-else>
+                          <div 
+                            class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-300 mr-2"
+                          >
+                            {{ user.name.charAt(0) }}
+                          </div>
+                        </template>
+                        <div>
+                          <div class="font-medium text-sm text-gray-900 dark:text-gray-100">{{ user.name }}</div>
+                          <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email }}</div>
+                        </div>
+                      </div>
+                      <button 
+                        @click="removeUserFromPhone(index)" 
+                        class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                      >
+                        <Icon name="lucide:trash-2" class="h-4 w-4" />
+                      </button>
+                    </li>
+                    <li v-if="!selectedPhone?.assignedUsers || selectedPhone.assignedUsers.length === 0" class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                      No users have been assigned to this number
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Team Access Section -->
+              <div>
+                <div class="flex justify-between items-center mb-3">
+                  <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">Teams with Access</h4>
+                  <button 
+                    @click="showAddTeamDropdown = !showAddTeamDropdown" 
+                    class="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  >
+                    <Icon name="lucide:plus" class="-ml-0.5 mr-1 h-4 w-4" />
+                    Add Team
+                  </button>
+                </div>
+
+                <!-- Add Team Dropdown -->
+                <div v-if="showAddTeamDropdown" class="relative z-10 mb-4">
+                  <div class="absolute right-0 w-60 mt-1 bg-white dark:bg-gray-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600">
+                    <div class="p-2">
+                      <input 
+                        v-model="teamSearchQuery" 
+                        type="text" 
+                        placeholder="Search teams..." 
+                        class="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-800 dark:text-white" 
+                      />
+                    </div>
+                    <ul class="max-h-40 overflow-y-auto py-1 divide-y divide-gray-200 dark:divide-gray-600">
+                      <li 
+                        v-for="(team, index) in filteredAvailableTeams" 
+                        :key="index" 
+                        @click="addTeamToPhone(team)"
+                        class="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
+                      >
+                        <div class="flex items-center">
+                          <div 
+                            class="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-sm font-medium text-blue-600 dark:text-blue-400 mr-2"
+                          >
+                            <Icon name="lucide:users" class="h-4 w-4" />
+                          </div>
+                          <div>
+                            <div class="font-medium">{{ team.name }}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">{{ team.memberCount }} members</div>
+                          </div>
+                        </div>
+                      </li>
+                      <li v-if="filteredAvailableTeams.length === 0" class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                        No matching teams found
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-md overflow-hidden border border-gray-200 dark:border-gray-600">
+                  <ul class="divide-y divide-gray-200 dark:divide-gray-600">
+                    <li 
+                      v-for="(team, index) in selectedPhone?.assignedTeams || []" 
+                      :key="index"
+                      class="px-4 py-3 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      <div class="flex items-center">
+                        <div 
+                          class="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-sm font-medium text-blue-600 dark:text-blue-400 mr-2"
+                        >
+                          <Icon name="lucide:users" class="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div class="font-medium text-sm text-gray-900 dark:text-gray-100">{{ team.name }}</div>
+                          <div class="text-xs text-gray-500 dark:text-gray-400">{{ team.memberCount }} members</div>
+                        </div>
+                      </div>
+                      <button 
+                        @click="removeTeamFromPhone(index)" 
+                        class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                      >
+                        <Icon name="lucide:trash-2" class="h-4 w-4" />
+                      </button>
+                    </li>
+                    <li v-if="!selectedPhone?.assignedTeams || selectedPhone.assignedTeams.length === 0" class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                      No teams have been assigned to this number
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+          <button
+            type="button"
+            @click="savePhoneAccess"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:col-start-2 sm:text-sm"
+          >
+            Save Changes
+          </button>
+          <button
+            type="button"
+            @click="showManageAccessModal = false"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:col-start-1 sm:text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+
+// Define types for user access control
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
+interface Team {
+  id: string;
+  name: string;
+  memberCount: number;
+}
+
+interface PhoneNumber {
+  number: string;
+  label: string;
+  services: string[];
+  assignedUsers: User[];
+  assignedTeams: Team[];
+}
 
 // Get the client ID from the route params
 const route = useRoute();
@@ -376,10 +695,18 @@ const id = computed(() => route.params.id as string);
 const showAddPhoneModal = ref(false);
 const editMode = ref(false);
 const editIndex = ref(-1);
-const newPhone = ref({
+const newPhone = ref<{
+  number: string;
+  label: string;
+  services: string[];
+  assignedUsers: User[];
+  assignedTeams: Team[];
+}>({
   number: '',
   label: '',
-  services: [] as string[]
+  services: [],
+  assignedUsers: [],
+  assignedTeams: []
 });
 
 // Services dropdown state
@@ -465,7 +792,9 @@ const openAddPhoneModal = () => {
   newPhone.value = {
     number: '',
     label: '',
-    services: []
+    services: [],
+    assignedUsers: [],
+    assignedTeams: []
   };
   editMode.value = false;
   showAddPhoneModal.value = true;
@@ -486,7 +815,9 @@ const editPhoneNumber = (index: number) => {
   newPhone.value = {
     number: phone.number,
     label: phone.label,
-    services: serviceIds
+    services: serviceIds,
+    assignedUsers: phone.assignedUsers || [],
+    assignedTeams: phone.assignedTeams || []
   };
   
   showAddPhoneModal.value = true;
@@ -512,7 +843,9 @@ const savePhoneNumber = () => {
     client.value.phoneNumbers[editIndex.value] = {
       number: newPhone.value.number,
       label: newPhone.value.label,
-      services: newPhone.value.services.map(id => getServiceName(id))
+      services: newPhone.value.services.map(id => getServiceName(id)),
+      assignedUsers: client.value.phoneNumbers[editIndex.value].assignedUsers || [],
+      assignedTeams: client.value.phoneNumbers[editIndex.value].assignedTeams || []
     };
     alert('2FA number updated successfully!');
   } else {
@@ -530,7 +863,9 @@ const savePhoneNumber = () => {
       client.value.phoneNumbers.push({
         number: phoneNumber,
         label: newPhone.value.label,
-        services: newPhone.value.services.map(id => getServiceName(id))
+        services: newPhone.value.services.map(id => getServiceName(id)),
+        assignedUsers: [],
+        assignedTeams: []
       });
       
       isLoading.value = false;
@@ -550,27 +885,140 @@ const confirmDeletePhoneNumber = (index: number) => {
   }
 };
 
+// Access control state
+const showManageAccessModal = ref(false);
+const selectedPhoneIndex = ref<number | null>(null);
+const selectedPhone = ref<PhoneNumber | null>(null);
+const showAddUserDropdown = ref(false);
+const showAddTeamDropdown = ref(false);
+const userSearchQuery = ref('');
+const teamSearchQuery = ref('');
+
+// Sample available users and teams data for the prototype
+const availableUsers = ref<User[]>([
+  { id: 'user1', name: 'Alice Johnson', email: 'alice@example.com' },
+  { id: 'user2', name: 'Bob Smith', email: 'bob@example.com' },
+  { id: 'user3', name: 'Carol Davis', email: 'carol@example.com' },
+  { id: 'user4', name: 'David Wilson', email: 'david@example.com' },
+  { id: 'user5', name: 'Eve Brown', email: 'eve@example.com' }
+]);
+
+const availableTeams = ref<Team[]>([
+  { id: 'team1', name: 'Support Team', memberCount: 5 },
+  { id: 'team2', name: 'Engineering', memberCount: 8 },
+  { id: 'team3', name: 'Sales', memberCount: 4 },
+  { id: 'team4', name: 'Operations', memberCount: 6 }
+]);
+
+// Computed properties for filtered users and teams
+const filteredAvailableUsers = computed(() => {
+  if (!userSearchQuery.value) return availableUsers.value;
+  
+  const query = userSearchQuery.value.toLowerCase();
+  return availableUsers.value.filter(user => {
+    // Filter out users already assigned to the phone number
+    const isAlreadyAssigned = selectedPhone.value?.assignedUsers?.some(assignedUser => assignedUser.id === user.id);
+    if (isAlreadyAssigned) return false;
+    
+    return user.name.toLowerCase().includes(query) || 
+           user.email.toLowerCase().includes(query);
+  });
+});
+
+const filteredAvailableTeams = computed(() => {
+  if (!teamSearchQuery.value) return availableTeams.value;
+  
+  const query = teamSearchQuery.value.toLowerCase();
+  return availableTeams.value.filter(team => {
+    // Filter out teams already assigned to the phone number
+    const isAlreadyAssigned = selectedPhone.value?.assignedTeams?.some(assignedTeam => assignedTeam.id === team.id);
+    if (isAlreadyAssigned) return false;
+    
+    return team.name.toLowerCase().includes(query);
+  });
+});
+
+// Access management functions
+function managePhoneAccess(index: number) {
+  selectedPhoneIndex.value = index;
+  selectedPhone.value = JSON.parse(JSON.stringify(client.value.phoneNumbers[index]));
+  showManageAccessModal.value = true;
+  showAddUserDropdown.value = false;
+  showAddTeamDropdown.value = false;
+}
+
+function addUserToPhone(user: User) {
+  if (selectedPhone.value) {
+    if (!selectedPhone.value.assignedUsers) {
+      selectedPhone.value.assignedUsers = [];
+    }
+    selectedPhone.value.assignedUsers.push(user);
+    showAddUserDropdown.value = false;
+  }
+}
+
+function removeUserFromPhone(index: number) {
+  if (selectedPhone.value && selectedPhone.value.assignedUsers) {
+    selectedPhone.value.assignedUsers.splice(index, 1);
+  }
+}
+
+function addTeamToPhone(team: Team) {
+  if (selectedPhone.value) {
+    if (!selectedPhone.value.assignedTeams) {
+      selectedPhone.value.assignedTeams = [];
+    }
+    selectedPhone.value.assignedTeams.push(team);
+    showAddTeamDropdown.value = false;
+  }
+}
+
+function removeTeamFromPhone(index: number) {
+  if (selectedPhone.value && selectedPhone.value.assignedTeams) {
+    selectedPhone.value.assignedTeams.splice(index, 1);
+  }
+}
+
+function savePhoneAccess() {
+  if (selectedPhoneIndex.value !== null && selectedPhone.value) {
+    client.value.phoneNumbers[selectedPhoneIndex.value] = selectedPhone.value;
+    showManageAccessModal.value = false;
+    
+    // In a real application, you would save the changes to the backend here
+    // api.updateClientPhone(client.value.id, selectedPhoneIndex.value, selectedPhone.value)
+  }
+}
+
 // Mock client data
 const client = ref({
-  id: '1',
+  id: '12345',
   firstName: 'John',
-  lastName: 'Smith',
-  email: 'john.smith@example.com',
-  company: 'Acme Corp',
+  lastName: 'Doe',
+  email: 'johndoe@example.com',
+  company: 'Acme Inc.',
   status: 'active',
-  createdAt: 'January 10, 2023',
-  lastActivity: '2 hours ago',
-  notes: 'Key client for our enterprise services. Prefers communication via email.',
+  createdAt: '01/15/2023',
+  lastActivity: '03/22/2023',
+  notes: 'Enterprise client with multiple numbers',
   phoneNumbers: [
     {
-      number: '15551234567',
-      label: 'Work',
-      services: ['Google', 'Microsoft', 'GitHub']
+      number: '14155552671',
+      label: 'Main Account',
+      services: ['Google', 'Microsoft', 'Facebook'],
+      assignedUsers: [
+        { id: 'user1', name: 'Alice Johnson', email: 'alice@example.com' },
+        { id: 'user2', name: 'Bob Smith', email: 'bob@example.com' }
+      ],
+      assignedTeams: [
+        { id: 'team1', name: 'Support Team', memberCount: 5 }
+      ]
     },
     {
-      number: '15559876543',
-      label: 'Personal',
-      services: ['AWS', 'Salesforce']
+      number: '14155552672',
+      label: 'Backup Account',
+      services: ['AWS', 'Dropbox'],
+      assignedUsers: [],
+      assignedTeams: []
     }
   ]
 });
