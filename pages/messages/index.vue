@@ -33,7 +33,7 @@
     <!-- Normal state content (search, filters, messages) -->
     <div v-else>
       <!-- Search and filtering -->
-      <div class="space-y-4">
+      <div class="space-y-4 mb-6">
         <!-- Search and filters -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="relative col-span-1 md:col-span-1">

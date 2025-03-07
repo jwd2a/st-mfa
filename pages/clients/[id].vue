@@ -78,9 +78,9 @@
     <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
       <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
         <div>
-          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Phone Numbers</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">2FA Substitute Numbers</h3>
           <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-            2FA phone numbers and services.
+            Twilio numbers that receive and store 2FA codes for this client.
           </p>
         </div>
         <button 
@@ -89,7 +89,7 @@
           class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
           <Icon name="lucide:plus" class="-ml-0.5 mr-2 h-4 w-4" />
-          Add Phone Number
+          Add 2FA Number
         </button>
       </div>
       
@@ -107,6 +107,9 @@
                   <div class="ml-4">
                     <div class="flex items-center">
                       <h2 class="text-sm font-medium text-gray-900 dark:text-gray-100">+{{ phone.number }}</h2>
+                      <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-500">
+                        Active
+                      </span>
                     </div>
                     <div class="mt-1 flex items-center">
                       <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -152,7 +155,7 @@
           </li>
           
           <li v-if="!client.phoneNumbers || client.phoneNumbers.length === 0" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
-            No phone numbers found
+            No 2FA numbers found
           </li>
         </ul>
       </div>
@@ -231,50 +234,47 @@
           <div class="sm:flex sm:items-start">
             <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
               <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
-                {{ editMode ? 'Edit Phone Number' : 'Add New Phone Number' }}
+                {{ editMode ? 'Edit 2FA Number' : 'Add New 2FA Number' }}
               </h3>
               <div class="mt-4 space-y-4">
-                <!-- Phone Number Field -->
-                <div>
-                  <label for="new-phone-number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Phone Number
-                  </label>
-                  <div class="mt-1 relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span class="text-gray-500 sm:text-sm">+</span>
-                    </div>
-                    <input 
-                      id="new-phone-number" 
-                      v-model="newPhone.number" 
-                      type="text" 
-                      class="pl-7 shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md" 
-                      placeholder="1 555 123 4567"
-                      required
-                    />
-                  </div>
-                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Include country code (e.g., 1 for US/Canada)</p>
-                </div>
-                
                 <!-- Label Field -->
                 <div>
                   <label for="new-phone-label" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Label
+                    Number Label
                   </label>
                   <div class="mt-1">
                     <input 
                       id="new-phone-label" 
                       v-model="newPhone.label" 
-                      type="text" 
+                      type="text"
+                      required
                       class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md" 
-                      placeholder="Personal, Work, etc."
+                      placeholder="e.g., Google Accounts, Banking"
                     />
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    A descriptive name to identify this number
+                  </p>
+                </div>
+                
+                <!-- Twilio Provision Info -->
+                <div v-if="!editMode" class="rounded-md bg-blue-50 dark:bg-blue-900/20 p-2">
+                  <div class="flex">
+                    <div class="flex-shrink-0">
+                      <Icon name="lucide:info" class="h-5 w-5 text-blue-400" />
+                    </div>
+                    <div class="ml-3 flex-1 md:flex md:justify-center">
+                      <p class="text-xs text-blue-700 dark:text-blue-300 text-center">
+                        A new Twilio number will be provisioned when you save
+                      </p>
+                    </div>
                   </div>
                 </div>
                 
-                <!-- Services Placeholder (to be implemented later) -->
+                <!-- Services Field -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Services
+                    Service Tags (Optional)
                   </label>
                   <div class="mt-1 relative">
                     <div class="flex items-center">
@@ -284,7 +284,7 @@
                           v-model="serviceSearchQuery" 
                           @focus="showServiceDropdown = true"
                           @blur="closeServiceDropdownDelayed"
-                          placeholder="Search for services..."
+                          placeholder="Search for services to tag this number with..."
                           class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md"
                         />
                         
@@ -333,7 +333,7 @@
                         </button>
                       </span>
                       <span v-if="newPhone.services.length === 0" class="text-xs text-gray-500 dark:text-gray-400">
-                        No services selected
+                        Add tags to organize this number
                       </span>
                     </div>
                   </div>
@@ -348,9 +348,9 @@
             type="button" 
             @click="savePhoneNumber" 
             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm"
-            :disabled="!newPhone.number"
+            :disabled="!newPhone.label"
           >
-            {{ editMode ? 'Update' : 'Add Phone' }}
+            {{ editMode ? 'Update' : 'Add 2FA Number' }}
           </button>
           <button 
             type="button" 
@@ -501,26 +501,41 @@ const closeAddPhoneModal = () => {
 
 // Function to save a phone number (add or update)
 const savePhoneNumber = () => {
-  // Validate the phone number (basic validation)
-  if (!newPhone.value.number) {
-    alert('Please enter a phone number');
+  // Validate the form data
+  if (!newPhone.value.label) {
+    alert('Please enter a label for the 2FA number');
     return;
   }
   
-  const phoneData = {
-    number: newPhone.value.number,
-    label: newPhone.value.label,
-    services: newPhone.value.services.map(id => getServiceName(id))
-  };
-  
   if (editMode.value) {
     // Update existing phone number
-    client.value.phoneNumbers[editIndex.value] = phoneData;
-    alert('Phone number updated successfully!');
+    client.value.phoneNumbers[editIndex.value] = {
+      number: newPhone.value.number,
+      label: newPhone.value.label,
+      services: newPhone.value.services.map(id => getServiceName(id))
+    };
+    alert('2FA number updated successfully!');
   } else {
-    // Add the new phone number to the client's phone numbers
-    client.value.phoneNumbers.push(phoneData);
-    alert('Phone number added successfully!');
+    // Simulate API call to provision a new Twilio number
+    const isLoading = ref(true);
+    
+    setTimeout(() => {
+      // Generate a random phone number
+      const areaCode = Math.floor(Math.random() * 900) + 100;
+      const prefix = Math.floor(Math.random() * 900) + 100;
+      const lineNumber = Math.floor(Math.random() * 9000) + 1000;
+      const phoneNumber = `${areaCode}${prefix}${lineNumber}`;
+      
+      // Add the new phone number to the client's phone numbers
+      client.value.phoneNumbers.push({
+        number: phoneNumber,
+        label: newPhone.value.label,
+        services: newPhone.value.services.map(id => getServiceName(id))
+      });
+      
+      isLoading.value = false;
+      alert('New Twilio 2FA number provisioned successfully!');
+    }, 1500);
   }
   
   // Close the modal
@@ -529,9 +544,9 @@ const savePhoneNumber = () => {
 
 // Function to confirm and delete a phone number
 const confirmDeletePhoneNumber = (index: number) => {
-  if (confirm('Are you sure you want to delete this phone number?')) {
+  if (confirm('Are you sure you want to delete this 2FA number? This will release the number from your Twilio account.')) {
     client.value.phoneNumbers.splice(index, 1);
-    alert('Phone number deleted successfully!');
+    alert('2FA number deleted and released successfully!');
   }
 };
 
