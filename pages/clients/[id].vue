@@ -33,14 +33,25 @@
             Personal details and contact information.
           </p>
         </div>
-        <span :class="[
-          client.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-500' : 
-          client.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-500' : 
-          'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-500',
-          'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium'
-        ]">
-          {{ client.status.charAt(0).toUpperCase() + client.status.slice(1) }}
-        </span>
+        <div class="flex flex-col items-end gap-2">
+          <span :class="[
+            client.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-500' : 
+            client.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-500' : 
+            'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-500',
+            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium'
+          ]">
+            {{ client.status.charAt(0).toUpperCase() + client.status.slice(1) }}
+          </span>
+          
+          <span v-if="client.billingType === 'self-pay'" :class="[
+            client.paymentStatus === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-500' : 
+            client.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-500' : 
+            'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-500',
+            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium'
+          ]">
+            {{ client.paymentStatus === 'paid' ? 'Payment Completed' : 'Payment Required' }}
+          </span>
+        </div>
       </div>
       <div class="border-t border-gray-200 dark:border-gray-700">
         <dl>
@@ -63,6 +74,86 @@
           <div class="bg-gray-50 dark:bg-gray-700/30 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last activity</dt>
             <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:mt-0 sm:col-span-2">{{ client.lastActivity || 'No recent activity' }}</dd>
+          </div>
+          <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Billing Type</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:mt-0 sm:col-span-2 flex items-center">
+              <span>{{ client.billingType === 'self-pay' ? 'Client Pays' : 'Service Provider Pays' }}</span>
+              <div class="ml-4 flex space-x-2">
+                <button 
+                  @click="toggleBillingType"
+                  class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs rounded shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                >
+                  <Icon name="lucide:refresh-cw" class="mr-1 h-3 w-3" />
+                  Change Billing Type
+                </button>
+                <button 
+                  v-if="client.billingType === 'self-pay' && client.paymentStatus !== 'paid'"
+                  @click="sendPaymentLink"
+                  class="inline-flex items-center px-2 py-1 border border-transparent text-xs rounded shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                >
+                  <Icon name="lucide:mail" class="mr-1 h-3 w-3" />
+                  Resend Payment Link
+                </button>
+                <button 
+                  v-if="client.billingType === 'self-pay'"
+                  @click="previewPaymentPage"
+                  class="inline-flex items-center px-2 py-1 border border-transparent text-xs rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <Icon name="lucide:eye" class="mr-1 h-3 w-3" />
+                  Preview Payment Page
+                </button>
+              </div>
+            </dd>
+          </div>
+          <div v-if="client.billingType === 'self-pay'" class="bg-gray-50 dark:bg-gray-700/30 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Payment Status</dt>
+            <dd class="mt-1 text-sm sm:mt-0 sm:col-span-2">
+              <div class="flex items-center">
+                <span :class="[
+                  client.paymentStatus === 'paid' ? 'text-green-600 dark:text-green-400' : 
+                  client.paymentStatus === 'pending' ? 'text-yellow-600 dark:text-yellow-400' : 
+                  'text-red-600 dark:text-red-400'
+                ]">
+                  {{ client.paymentStatus === 'paid' ? 'Paid' : 'Payment Required' }}
+                  <span v-if="client.paymentStatus === 'paid'" class="text-gray-500 dark:text-gray-400 ml-2 text-xs">
+                    (Paid on {{ client.paymentDate }})
+                  </span>
+                </span>
+                
+                <!-- Testing buttons, would be removed in production -->
+                <div v-if="client.paymentStatus !== 'paid'" class="ml-4">
+                  <button 
+                    @click="markAsPaid" 
+                    class="inline-flex items-center px-2 py-1 border border-transparent text-xs rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <Icon name="lucide:check" class="mr-1 h-3 w-3" />
+                    Mark as Paid (Test)
+                  </button>
+                </div>
+              </div>
+              
+              <div v-if="client.paymentStatus !== 'paid'" class="mt-2">
+                <div class="flex items-center">
+                  <Icon name="lucide:link" class="h-4 w-4 text-gray-400 mr-1" />
+                  <span class="text-sm text-gray-500 dark:text-gray-400">Payment Link:</span>
+                </div>
+                <div class="mt-1 flex items-center">
+                  <input 
+                    type="text" 
+                    readonly 
+                    :value="getPaymentLink()"
+                    class="flex-1 shadow-sm focus:ring-primary focus:border-primary block w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md"
+                  />
+                  <button 
+                    @click="copyPaymentLink" 
+                    class="ml-2 inline-flex items-center px-2 py-1 border border-gray-300 text-xs rounded shadow-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  >
+                    <Icon name="lucide:copy" class="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </dd>
           </div>
           <div class="bg-white dark:bg-gray-800 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Notes</dt>
@@ -687,9 +778,28 @@ interface PhoneNumber {
   assignedTeams: Team[];
 }
 
+interface Client {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  company: string;
+  status: string;
+  createdAt: string;
+  lastActivity: string;
+  notes: string;
+  billingType: 'provider-pay' | 'self-pay';
+  paymentStatus?: 'paid' | 'pending';
+  paymentDate?: string;
+  phoneNumbers: PhoneNumber[];
+}
+
 // Get the client ID from the route params
 const route = useRoute();
 const id = computed(() => route.params.id as string);
+
+// Get browser globals for client-side use
+// const { window } = useNuxtApp().$getGlobals();
 
 // Modal state for adding phone numbers
 const showAddPhoneModal = ref(false);
@@ -990,7 +1100,7 @@ function savePhoneAccess() {
 }
 
 // Mock client data
-const client = ref({
+const client = ref<Client>({
   id: '12345',
   firstName: 'John',
   lastName: 'Doe',
@@ -1000,6 +1110,8 @@ const client = ref({
   createdAt: '01/15/2023',
   lastActivity: '03/22/2023',
   notes: 'Enterprise client with multiple numbers',
+  billingType: 'self-pay',
+  paymentStatus: 'pending',
   phoneNumbers: [
     {
       number: '14155552671',
@@ -1053,4 +1165,54 @@ const recentMessages = ref([
     read: true
   }
 ]);
+
+// Function to send payment link to client
+const sendPaymentLink = () => {
+  // In a real app, this would send an email with a link to the payment page
+  alert(`Payment link sent to ${client.value.email}`);
+};
+
+// Function to mark client as paying client
+const toggleBillingType = () => {
+  if (client.value.billingType === 'provider-pay') {
+    client.value.billingType = 'self-pay';
+    client.value.paymentStatus = 'pending';
+  } else {
+    client.value.billingType = 'provider-pay';
+    client.value.paymentStatus = undefined;
+    client.value.paymentDate = undefined;
+  }
+};
+
+// Function to view payment page as client would see it
+const previewPaymentPage = () => {
+  window.open(`/payment/${client.value.id}`, '_blank');
+};
+
+// Function to mark client as paid (for testing)
+const markAsPaid = () => {
+  client.value.paymentStatus = 'paid';
+  client.value.paymentDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  alert('Client marked as paid!');
+};
+
+// Function to get payment link (safe for SSR)
+const getPaymentLink = () => {
+  if (process.client) {
+    return `${window.location.origin}/payment/${client.value.id}`;
+  }
+  return `/payment/${client.value.id}`;
+};
+
+// Function to copy payment link to clipboard
+const copyPaymentLink = () => {
+  if (process.client) {
+    navigator.clipboard.writeText(getPaymentLink());
+    alert('Payment link copied to clipboard!');
+  }
+};
 </script> 

@@ -92,20 +92,27 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-              <tr v-for="client in filteredClients" :key="client.id" @click="navigateToClient(client.id)" class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+              <tr v-for="client in filteredClients" :key="client.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span class="text-primary font-medium text-sm">{{ getInitials(client.name) }}</span>
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                      {{ client.firstName.charAt(0) }}{{ client.lastName.charAt(0) }}
                     </div>
                     <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ client.name }}</div>
-                      <div class="text-sm text-gray-500 dark:text-gray-400">{{ client.email }}</div>
+                      <NuxtLink :to="`/clients/${client.id}`" class="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-primary">
+                        {{ client.firstName }} {{ client.lastName }}
+                      </NuxtLink>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ client.company }}
+                      </div>
                     </div>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900 dark:text-gray-100">{{ client.company }}</div>
+                  <div class="text-sm text-gray-900 dark:text-gray-100">{{ client.email }}</div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    Last activity: {{ client.lastActivity }}
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900 dark:text-gray-100">{{ client.phoneNumbers.length }} numbers</div>
@@ -117,7 +124,65 @@
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <!-- View button removed - entire row is clickable -->
+                  <div class="flex justify-end space-x-3">
+                    <NuxtLink to="/clients/paid-client" class="text-primary hover:text-primary/80">
+                      View
+                    </NuxtLink>
+                    <NuxtLink to="/clients/paid-client/edit" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+                      Edit
+                    </NuxtLink>
+                    <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              
+              <!-- Sample client with paid status -->
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                      JD
+                    </div>
+                    <div class="ml-4">
+                      <NuxtLink to="/clients/paid-client" class="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-primary">
+                        Jane Doe
+                      </NuxtLink>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">
+                        Example Corp
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900 dark:text-gray-100">jane@example.com</div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    Last activity: 2 hours ago
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col space-y-1">
+                    <span class="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-500 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit">
+                      Active
+                    </span>
+                    <span class="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-500 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit">
+                      Payment Complete
+                    </span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex justify-end space-x-3">
+                    <NuxtLink to="/clients/paid-client" class="text-primary hover:text-primary/80">
+                      View
+                    </NuxtLink>
+                    <NuxtLink to="/clients/paid-client/edit" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+                      Edit
+                    </NuxtLink>
+                    <button class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -161,53 +226,39 @@ const route = useRoute();
 const router = useRouter();
 
 // Mock client data
-const clients = [
+const clients = ref([
   {
     id: '1',
-    name: 'Jane Cooper',
-    email: 'jane@acmecorp.com',
+    firstName: 'John',
+    lastName: 'Smith',
+    email: 'john.smith@example.com',
     company: 'Acme Corp',
-    phoneNumbers: ['+1 (555) 123-4567', '+1 (555) 765-4321'],
     status: 'active',
-    lastActivity: 'Today at 2:15 PM'
+    lastActivity: '2 hours ago',
+    billingType: 'provider-pay'
   },
   {
     id: '2',
-    name: 'Cody Fisher',
-    email: 'cody@globex.com',
-    company: 'Globex Inc',
-    phoneNumbers: ['+1 (555) 234-5678'],
-    status: 'active',
-    lastActivity: 'Yesterday at 11:30 AM'
+    firstName: 'Sarah',
+    lastName: 'Johnson',
+    email: 'sarah.johnson@example.com',
+    company: 'XYZ Industries',
+    status: 'pending',
+    lastActivity: '1 day ago',
+    billingType: 'self-pay',
+    paymentStatus: 'pending'
   },
   {
     id: '3',
-    name: 'Esther Howard',
-    email: 'esther@stark.com',
-    company: 'Stark Industries',
-    phoneNumbers: ['+1 (555) 345-6789', '+1 (555) 987-6543'],
-    status: 'active',
-    lastActivity: '3 days ago'
-  },
-  {
-    id: '4',
-    name: 'Cameron Williamson',
-    email: 'cameron@wayne.com',
-    company: 'Wayne Enterprises',
-    phoneNumbers: ['+1 (555) 456-7890'],
+    firstName: 'Michael',
+    lastName: 'Brown',
+    email: 'michael.brown@example.com',
+    company: 'Global Tech',
     status: 'inactive',
-    lastActivity: '1 week ago'
-  },
-  {
-    id: '5',
-    name: 'Brooklyn Simmons',
-    email: 'brooklyn@umbrella.com',
-    company: 'Umbrella Corp',
-    phoneNumbers: ['+1 (555) 567-8901'],
-    status: 'inactive',
-    lastActivity: '2 weeks ago'
+    lastActivity: '2 weeks ago',
+    billingType: 'provider-pay'
   }
-];
+]);
 
 // Search and filter
 const searchQuery = ref('');
@@ -224,15 +275,16 @@ onMounted(() => {
 
 // Computed filtered clients based on search and filter
 const filteredClients = computed(() => {
-  return clients.filter(client => {
+  return clients.value.filter(client => {
     // Apply search filter
     const matchesSearch = searchQuery.value === '' || 
-      client.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      client.firstName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      client.lastName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       client.email.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       client.company.toLowerCase().includes(searchQuery.value.toLowerCase());
-    
+      
     // Apply status filter
-    const matchesStatus = statusFilter.value === '' || client.status === statusFilter.value;
+    const matchesStatus = statusFilter.value === 'all' || client.status === statusFilter.value;
     
     return matchesSearch && matchesStatus;
   });
