@@ -312,8 +312,8 @@ const completeSignup = () => {
   // In a real app, this would submit data to the backend
   console.log('Signup data:', { ...form.value, payment: { ...payment.value } });
   
-  // Redirect to the dashboard
-  router.push('/messages');
+  // Redirect to the dashboard with first-time user experience
+  router.push('/messages?ftu');
 };
 
 // Check if a plan was preselected from URL

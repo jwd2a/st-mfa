@@ -20,9 +20,14 @@ useHead({
 const marketingPaths = ['/', '/signup', '/login'];
 
 onMounted(() => {
-  // Only redirect to /messages if we're at root and not on a marketing page
+  // If visiting root, check where to direct the user
   if (route.path === '/' && !marketingPaths.includes(route.path)) {
-    router.push('/messages');
+    // If 'ftu' parameter is provided in the URL, preserve it when redirecting
+    if (route.query.ftu !== undefined) {
+      router.push('/messages?ftu');
+    } else {
+      router.push('/messages');
+    }
   }
 });
 </script>
