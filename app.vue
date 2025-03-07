@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-// Redirect root path to messages page
+// Redirect root path to messages page if not on marketing pages
 const route = useRoute();
 const router = useRouter();
 
@@ -16,8 +16,12 @@ useHead({
   ]
 });
 
+// List of paths that should use the marketing layout without redirection
+const marketingPaths = ['/', '/signup'];
+
 onMounted(() => {
-  if (route.path === '/') {
+  // Only redirect to /messages if we're at root and not on a marketing page
+  if (route.path === '/' && !marketingPaths.includes(route.path)) {
     router.push('/messages');
   }
 });
