@@ -2,7 +2,7 @@
   <div class="landing-page">
     <!-- Hero Section -->
     <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-      <div class="container mx-auto px-6 py-16 md:py-24">
+      <div class="container mx-auto px-6 pt-24 pb-16 md:pt-32 md:pb-24">
         <div class="max-w-4xl mx-auto text-center">
           <h1 class="text-4xl md:text-6xl font-bold mb-6">Multi-Factor Authentication Made Simple</h1>
           <p class="text-xl md:text-2xl mb-8">Secure your customers' accounts with our easy-to-use MFA service for service providers.</p>
@@ -10,7 +10,7 @@
             <NuxtLink to="/signup" class="px-8 py-3 bg-white text-blue-700 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors">
               Get Started
             </NuxtLink>
-            <NuxtLink to="/messages" class="px-8 py-3 bg-blue-500 text-white rounded-lg font-semibold text-lg hover:bg-blue-600 transition-colors">
+            <NuxtLink to="/login" class="px-8 py-3 bg-blue-500 text-white rounded-lg font-semibold text-lg hover:bg-blue-600 transition-colors">
               Sign In
             </NuxtLink>
           </div>
@@ -19,7 +19,7 @@
     </header>
 
     <!-- Features Section -->
-    <section class="py-16 bg-white">
+    <section id="features" class="py-16 bg-white">
       <div class="container mx-auto px-6">
         <h2 class="text-3xl font-bold text-center mb-12">Why Choose Our MFA Solution?</h2>
         
@@ -52,7 +52,7 @@
     </section>
 
     <!-- Pricing Section -->
-    <section class="py-16 bg-gray-50">
+    <section id="pricing" class="py-16 bg-gray-50">
       <div class="container mx-auto px-6">
         <h2 class="text-3xl font-bold text-center mb-12">Simple, Transparent Pricing</h2>
         

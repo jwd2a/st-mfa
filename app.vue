@@ -17,7 +17,7 @@ useHead({
 });
 
 // List of paths that should use the marketing layout without redirection
-const marketingPaths = ['/', '/signup'];
+const marketingPaths = ['/', '/signup', '/login'];
 
 onMounted(() => {
   // Only redirect to /messages if we're at root and not on a marketing page

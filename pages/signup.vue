@@ -1,6 +1,16 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
+      <!-- Logo -->
+      <div class="flex justify-center mb-6">
+        <div class="flex items-center">
+          <div class="bg-primary rounded-lg p-2">
+            <Icon name="lucide:shield-check" class="h-8 w-8 text-white" />
+          </div>
+          <span class="ml-2 text-2xl font-bold text-gray-900">MFA</span>
+        </div>
+      </div>
+      
       <div class="text-center">
         <h2 class="text-3xl font-extrabold text-gray-900">Create your account</h2>
         <p class="mt-2 text-sm text-gray-600">
