@@ -183,6 +183,75 @@
                     </div>
                   </div>
                 </div>
+                
+                <!-- Services Field -->
+                <div class="sm:col-span-6">
+                  <label :for="`phone-services-${index}`" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Services
+                  </label>
+                  <div class="mt-1 relative">
+                    <div class="flex items-center">
+                      <div class="relative flex-grow">
+                        <input 
+                          :id="`phone-services-${index}`"
+                          type="text" 
+                          v-model="serviceSearchQueries[index]" 
+                          @focus="openServiceDropdown(index)"
+                          @blur="closeServiceDropdownDelayed(index)"
+                          placeholder="Search for services..."
+                          class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md"
+                        />
+                        
+                        <!-- Service Dropdown -->
+                        <div 
+                          v-if="activeServiceDropdown === index" 
+                          class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm"
+                        >
+                          <div 
+                            v-for="service in filteredServices(index)" 
+                            :key="service.id" 
+                            @mousedown.prevent="toggleService(index, service.id)"
+                            class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <div class="flex items-center">
+                              <span class="block truncate" :class="{'font-semibold': phone.selectedServices.includes(service.id)}">
+                                {{ service.name }}
+                              </span>
+                              <span v-if="phone.selectedServices.includes(service.id)" class="absolute inset-y-0 right-0 flex items-center pr-4">
+                                <Icon name="lucide:check" class="h-4 w-4 text-primary" />
+                              </span>
+                            </div>
+                          </div>
+                          <div v-if="filteredServices(index).length === 0" class="py-2 px-3 text-gray-500 dark:text-gray-400 text-sm">
+                            No matching services found
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Selected Services -->
+                    <div class="mt-2 flex flex-wrap gap-1">
+                      <span 
+                        v-for="serviceId in phone.selectedServices" 
+                        :key="serviceId" 
+                        class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/20 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-400"
+                      >
+                        {{ getServiceName(serviceId) }}
+                        <button 
+                          type="button" 
+                          @click="removeService(index, serviceId)" 
+                          class="ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 focus:outline-none"
+                        >
+                          <span class="sr-only">Remove {{ getServiceName(serviceId) }}</span>
+                          <Icon name="lucide:x" class="h-3 w-3" />
+                        </button>
+                      </span>
+                      <span v-if="phone.selectedServices.length === 0" class="text-xs text-gray-500 dark:text-gray-400">
+                        No services selected
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
