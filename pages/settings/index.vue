@@ -303,6 +303,96 @@
 
     <!-- Team Members -->
     <div v-if="activeTab === 'team'" class="space-y-6">
+      <!-- Users Section -->
+      <div class="bg-white shadow-sm rounded-lg overflow-hidden dark:bg-gray-800">
+        <div class="px-4 py-5 sm:px-6 border-b dark:border-gray-700">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Users</h3>
+              <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Manage internal and external users who have access to your 2FA numbers.</p>
+            </div>
+            <button
+              @click="showInviteModal = true"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              Add User
+            </button>
+          </div>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead class="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Access</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                  <th scope="col" class="relative px-6 py-3">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                <tr v-for="(member, index) in team.members" :key="index" class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="h-10 w-10 flex-shrink-0">
+                        <img class="h-10 w-10 rounded-full" :src="member.avatar" alt="" />
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ member.name }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ member.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span :class="{
+                      'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400': member.type === 'Internal',
+                      'px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400': member.type === 'External'
+                    }">
+                      {{ member.type }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900 dark:text-gray-100">
+                      {{ member.accessNumbers?.length || 0 }} number{{ member.accessNumbers?.length !== 1 ? 's' : '' }}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ member.accessTeams?.length || 0 }} team{{ member.accessTeams?.length !== 1 ? 's' : '' }}
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <span :class="{
+                      'text-green-800 dark:text-green-400': member.status === 'Active',
+                      'text-yellow-800 dark:text-yellow-400': member.status === 'Pending'
+                    }" class="text-sm font-medium">
+                      {{ member.status }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div class="flex space-x-3 justify-end">
+                      <button
+                        @click="editUser(member)"
+                        class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        @click="removeUser(member)"
+                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Teams Section -->
       <div class="bg-white shadow-sm rounded-lg overflow-hidden dark:bg-gray-800">
         <div class="px-4 py-5 sm:px-6 border-b dark:border-gray-700">
@@ -326,7 +416,7 @@
                 <tr>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Team Name</th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Members</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Access Level</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Access</th>
                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created</th>
                   <th scope="col" class="relative px-6 py-3">
                     <span class="sr-only">Actions</span>
@@ -373,8 +463,10 @@
                       </div>
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {{ team.accessLevel }}
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900 dark:text-gray-100">
+                      {{ team.accessNumbers?.length || 0 }} number{{ team.accessNumbers?.length !== 1 ? 's' : '' }}
+                    </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {{ team.createdAt }}
@@ -394,79 +486,6 @@
                         Delete
                       </button>
                     </div>
-                  </td>
-                </tr>
-                <tr v-if="teams.length === 0">
-                  <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-center">
-                    No teams found. Create a team to get started.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Team Members Section -->
-      <div class="bg-white shadow-sm rounded-lg overflow-hidden dark:bg-gray-800">
-        <div class="px-4 py-5 sm:px-6 border-b dark:border-gray-700">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Team Members</h3>
-              <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Manage your team members and their roles.</p>
-            </div>
-            <button
-              @click="showInviteModal = true"
-              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              Invite Member
-            </button>
-          </div>
-        </div>
-        <div class="px-4 py-5 sm:p-6">
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead class="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Role</th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                  <th scope="col" class="relative px-6 py-3">
-                    <span class="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
-                <tr v-for="(member, index) in team.members" :key="index" class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="h-10 w-10 flex-shrink-0">
-                        <img class="h-10 w-10 rounded-full" :src="member.avatar" alt="" />
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ member.name }}</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ member.title }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ member.email }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ member.role }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    <span :class="{
-                      'text-green-800 dark:text-green-400': member.status === 'Active',
-                      'text-yellow-800 dark:text-yellow-400': member.status === 'Pending'
-                    }" class="text-sm font-medium">
-                      {{ member.status }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      @click="removeTeamMember(member)"
-                      class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                    >
-                      Remove
-                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -662,21 +681,83 @@
               </select>
             </div>
           </div>
+          <div class="mt-4">
+            <label for="invite-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">User Type</label>
+            <div class="mt-1">
+              <select
+                id="invite-type"
+                name="invite-type"
+                v-model="newTeamMember.type"
+                class="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-gray-100"
+              >
+                <option value="Internal">Internal</option>
+                <option value="External">External</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-4">
+            <div class="flex items-center justify-between">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">2FA Numbers</label>
+              <span class="text-xs text-gray-500 dark:text-gray-400">$5/number/month</span>
+            </div>
+            <div class="mt-1">
+              <div class="bg-white dark:bg-gray-800 rounded-md overflow-hidden border border-gray-200 dark:border-gray-600">
+                <ul class="divide-y divide-gray-200 dark:divide-gray-600 max-h-48 overflow-y-auto">
+                  <li 
+                    v-for="number in availableNumbers" 
+                    :key="number.id"
+                    class="relative hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <label :for="'number-' + number.id" class="flex px-4 py-4 cursor-pointer">
+                      <div class="flex items-center h-5">
+                        <input
+                          type="checkbox"
+                          :id="'number-' + number.id"
+                          :value="number.number"
+                          v-model="newTeamMember.accessNumbers"
+                          class="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600 rounded"
+                        />
+                      </div>
+                      <div class="ml-3 flex flex-col">
+                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {{ number.label }}
+                        </span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                          {{ number.number }}
+                        </span>
+                      </div>
+                    </label>
+                  </li>
+                  <li v-if="availableNumbers.length === 0" class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                    No 2FA numbers available
+                  </li>
+                </ul>
+              </div>
+              <div class="mt-2 flex items-center justify-between text-sm">
+                <span class="text-gray-500 dark:text-gray-400">
+                  {{ newTeamMember.accessNumbers.length }} number{{ newTeamMember.accessNumbers.length !== 1 ? 's' : '' }} selected
+                </span>
+                <span class="font-medium text-gray-900 dark:text-gray-100">
+                  + ${{ newTeamMember.accessNumbers.length * 5 }}/month
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
-          <button
-            type="button"
-            @click="inviteTeamMember"
-            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:col-start-2 sm:text-sm"
-          >
-            Send Invitation
-          </button>
           <button
             type="button"
             @click="showInviteModal = false"
             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:col-start-1 sm:text-sm"
           >
             Cancel
+          </button>
+          <button
+            type="button"
+            @click="inviteTeamMember"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:col-start-2 sm:text-sm"
+          >
+            Send Invitation
           </button>
         </div>
       </div>
@@ -1008,7 +1089,10 @@ const team = ref({
       role: 'Admin',
       title: 'CEO',
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-      status: 'Active'
+      status: 'Active',
+      type: 'Internal',
+      accessNumbers: ['+1234567890', '+1987654321'],
+      accessTeams: ['Support Team', 'Engineering']
     },
     {
       name: 'Jane Smith',
@@ -1016,7 +1100,10 @@ const team = ref({
       role: 'Editor',
       title: 'Developer',
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-      status: 'Active'
+      status: 'Active',
+      type: 'Internal',
+      accessNumbers: ['+1234567890'],
+      accessTeams: ['Engineering']
     },
     {
       name: 'Bob Wilson',
@@ -1024,7 +1111,10 @@ const team = ref({
       role: 'Viewer',
       title: 'Designer',
       avatar: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-      status: 'Pending'
+      status: 'Pending',
+      type: 'External',
+      accessNumbers: ['+1987654321'],
+      accessTeams: ['Support Team']
     }
   ]
 });
@@ -1079,8 +1169,17 @@ const newApiKey = ref({
 // New Team Member form
 const newTeamMember = ref({
   email: '',
-  role: 'viewer'
+  role: 'viewer',
+  type: 'Internal',
+  accessNumbers: []
 });
+
+// Add available numbers data
+const availableNumbers = ref([
+  { id: '1', number: '+1234567890', label: 'Main Support Line' },
+  { id: '2', number: '+1987654321', label: 'Sales Team Line' },
+  { id: '3', number: '+1122334455', label: 'Customer Service' }
+]);
 
 // Team management
 const teams = ref([
@@ -1088,24 +1187,24 @@ const teams = ref([
     id: 'team1',
     name: 'Support Team',
     description: 'Handles customer support and account access',
-    accessLevel: 'Full Access',
     createdAt: 'March 10, 2023',
     members: [
       { id: 'user1', name: 'Alice Johnson', email: 'alice@example.com', avatar: null },
       { id: 'user2', name: 'Bob Smith', email: 'bob@example.com', avatar: null },
       { id: 'user3', name: 'Carol Davis', email: 'carol@example.com', avatar: null }
-    ]
+    ],
+    accessNumbers: ['+1987654321']
   },
   {
     id: 'team2',
     name: 'Engineering',
     description: 'Technical team that manages the API integration',
-    accessLevel: 'Full Access',
     createdAt: 'January 15, 2023',
     members: [
       { id: 'user4', name: 'David Wilson', email: 'david@example.com', avatar: null },
       { id: 'user5', name: 'Eve Brown', email: 'eve@example.com', avatar: null }
-    ]
+    ],
+    accessNumbers: ['+1234567890']
   }
 ]);
 
@@ -1240,10 +1339,12 @@ const inviteTeamMember = () => {
     role: newTeamMember.value.role,
     title: 'Team Member',
     avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newTeamMember.value.email.split('@')[0])}&background=random`,
-    status: 'Pending'
+    status: 'Pending',
+    type: newTeamMember.value.type,
+    accessNumbers: [...newTeamMember.value.accessNumbers]
   };
   team.value.members.push(member);
   showInviteModal.value = false;
-  newTeamMember.value = { email: '', role: 'viewer' };
+  newTeamMember.value = { email: '', role: 'viewer', type: 'Internal', accessNumbers: [] };
 };
 </script>

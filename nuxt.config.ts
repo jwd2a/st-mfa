@@ -61,7 +61,7 @@ export default defineNuxtConfig({
   
   // Additional build options
   build: {
-    transpile: ['vue-sonner']
+    transpile: ['vue-sonner', '@headlessui/vue']
   },
   
   // Experimental features
@@ -70,5 +70,16 @@ export default defineNuxtConfig({
   },
   
   // Set compatibility date to address warnings
-  compatibilityDate: '2025-03-05'
+  compatibilityDate: '2025-03-05',
+
+  imports: {
+    dirs: ['composables/**'],
+  },
+
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false,
+    },
+  ],
 }) 

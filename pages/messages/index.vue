@@ -1,42 +1,17 @@
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h2>
-    </div>
-    
-    <!-- First-time user empty state -->
-    <div v-if="isFirstTimeUser" class="bg-white dark:bg-gray-800 shadow overflow-hidden rounded-lg">
-      <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div class="bg-primary/10 rounded-full p-6 mb-6">
-          <Icon name="lucide:shield-check" class="h-16 w-16 text-primary" />
+    <!-- Header with filters -->
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
+      <div class="space-y-4">
+        <!-- First row: Title -->
+        <div class="flex items-center">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h2>
         </div>
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Welcome to MFA!</h3>
-        <p class="text-gray-500 dark:text-gray-400 max-w-lg mb-8">
-          Get started by adding your first client to manage multi-factor authentication for your customers.
-        </p>
-        
-        <div class="w-full max-w-md">
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
-            <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-4">Add Your First Client</h4>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Create a client record to start managing their authentication needs.
-            </p>
-            <NuxtLink to="/clients/new" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-              <Icon name="lucide:plus" class="h-4 w-4 mr-2" />
-              Add a Client
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Normal state content (search, filters, messages) -->
-    <div v-else>
-      <!-- Search and filtering -->
-      <div class="space-y-4 mb-6">
-        <!-- Search and filters -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="relative col-span-1 md:col-span-1">
+
+        <!-- Second row: Search and Filters -->
+        <div class="flex items-center gap-4">
+          <!-- Search -->
+          <div class="relative flex-1">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Icon name="lucide:search" class="h-5 w-5 text-gray-400" />
             </div>
@@ -47,26 +22,101 @@
               class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm dark:bg-gray-800 dark:text-gray-100"
             />
           </div>
-          
-          <select 
-            v-model="statusFilter" 
-            class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
-          >
-            <option value="unread">Unread ({{ unreadCount }})</option>
-            <option value="">All Messages ({{ messages.length }})</option>
-            <option value="read">Read ({{ readCount }})</option>
-          </select>
-          
-          <select 
-            v-model="clientFilter" 
-            class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
-          >
-            <option value="">All Clients</option>
-            <option v-for="client in uniqueClients" :key="client" :value="client">{{ client }}</option>
-          </select>
+
+          <!-- Service Filter -->
+          <div class="w-48">
+            <select
+              v-model="selectedService"
+              class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="">All Services</option>
+              <option v-for="service in availableServices" :key="service" :value="service">
+                {{ service }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Number Filter -->
+          <div class="w-64">
+            <select
+              v-model="numberFilter"
+              class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="">All Numbers</option>
+              <option v-for="number in uniqueNumbers" :key="number" :value="number">
+                {{ number }} ({{ getNumberLabel(number) }})
+              </option>
+            </select>
+          </div>
         </div>
       </div>
-      
+    </div>
+    
+    <!-- First-time user empty state -->
+    <div v-if="isFirstTimeUser" class="bg-white dark:bg-gray-800 shadow overflow-hidden rounded-lg">
+      <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div class="bg-primary/10 rounded-full p-6 mb-6">
+          <Icon name="lucide:shield-check" class="h-16 w-16 text-primary" />
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Welcome to MFA!</h3>
+        <p class="text-gray-500 dark:text-gray-400 max-w-lg mb-8">
+          We've provisioned your first 2FA number to help you get started.
+        </p>
+        
+        <div class="w-full max-w-md">
+          <!-- Default Number Card -->
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h4 class="font-medium text-gray-900 dark:text-gray-100">Default Number</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Ready to use</p>
+              </div>
+              <span class="text-lg font-mono text-gray-600 dark:text-gray-300">+1 (555) 000-0000</span>
+            </div>
+            <div class="space-y-3 text-sm">
+              <p class="text-gray-500 dark:text-gray-400">
+                Here's what you can do with your number:
+              </p>
+              <ul class="space-y-2">
+                <li class="flex items-start">
+                  <Icon name="lucide:check" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                  <span class="text-gray-600 dark:text-gray-300">Receive 2FA codes for any service</span>
+                </li>
+                <li class="flex items-start">
+                  <Icon name="lucide:users" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                  <span class="text-gray-600 dark:text-gray-300">Share access with your team members</span>
+                </li>
+                <li class="flex items-start">
+                  <Icon name="lucide:tag" class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                  <span class="text-gray-600 dark:text-gray-300">Tag with services for better organization</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="grid gap-4 sm:grid-cols-2">
+            <NuxtLink
+              to="/numbers"
+              class="inline-flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              <Icon name="lucide:settings" class="w-5 h-5 mr-2 text-gray-400" />
+              Configure Number
+            </NuxtLink>
+            <NuxtLink
+              to="/settings"
+              class="inline-flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              <Icon name="lucide:users" class="w-5 h-5 mr-2 text-gray-400" />
+              Invite Team
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Normal state content (search, filters, messages) -->
+    <div v-else>
       <!-- Messages list -->
       <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
         <!-- Empty state when no unread messages -->
@@ -113,10 +163,10 @@
                       class="text-sm font-medium dark:text-gray-100"
                       :class="message.read ? 'text-gray-900' : 'text-gray-900 font-semibold'"
                     >
-                      {{ message.client }}
+                      {{ message.service }}
                     </h2>
                     <span class="ml-2 mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                      {{ message.service }}
+                      {{ message.number }}
                     </span>
                     <span v-if="!message.read" class="ml-2 mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary">
                       New
@@ -124,7 +174,7 @@
                   </div>
                   <div class="mt-1 flex items-center">
                     <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      <span class="font-medium">{{ message.phoneNumber }}</span> · From: {{ message.sender }}
+                      From: {{ message.sender }}
                     </p>
                   </div>
                 </div>
@@ -176,8 +226,16 @@ import { useRoute, useRouter } from 'vue-router';
 const route = useRoute();
 const router = useRouter();
 const searchQuery = ref('');
-const clientFilter = ref('');
+const numberFilter = ref('');
 const statusFilter = ref('unread'); // Default to unread messages
+const selectedService = ref('');
+
+// Function to get number label
+function getNumberLabel(number: string): string {
+  const defaultNumber = '+1 (555) 000-0000';
+  if (number === defaultNumber) return 'Default Number';
+  return 'Custom Number'; // In a real app, this would come from your numbers data
+}
 
 // First-time user state
 const isFirstTimeUser = ref(false);
@@ -186,27 +244,30 @@ const isFirstTimeUser = ref(false);
 onMounted(() => {
   // Check for 'ftu' parameter in URL
   isFirstTimeUser.value = route.query.ftu !== undefined;
+  
+  // Remove the ftu parameter after checking it
+  if (isFirstTimeUser.value) {
+    router.replace({ query: {} });
+  }
 });
 
 // Interface for message
 interface Message {
-  client: string;
   service: string;
-  phoneNumber: string;
+  number: string;
   sender: string;
   content: string;
   time: string;
   read: boolean;
-  id?: string; // Optional ID field
+  id?: string;
 }
 
 // Mock message data
 const messages = ref<Message[]>([
   {
     id: '1',
-    client: 'Acme Corp',
     service: 'QuickBooks',
-    phoneNumber: '+1 (555) 123-4567',
+    number: '+1 (555) 123-4567',
     sender: '+1 (844) 472-3829',
     content: 'Your verification code is 472931',
     time: '5 minutes ago',
@@ -214,9 +275,8 @@ const messages = ref<Message[]>([
   },
   {
     id: '2',
-    client: 'Globex Inc',
     service: 'Xero',
-    phoneNumber: '+1 (555) 234-5678',
+    number: '+1 (555) 234-5678',
     sender: '+1 (844) 387-9120',
     content: 'Use 893421 as your login code',
     time: '18 minutes ago',
@@ -224,9 +284,8 @@ const messages = ref<Message[]>([
   },
   {
     id: '3',
-    client: 'Stark Industries',
     service: 'NetSuite',
-    phoneNumber: '+1 (555) 345-6789',
+    number: '+1 (555) 345-6789',
     sender: '+1 (844) 629-3857',
     content: '325790 is your authentication code',
     time: '1 hour ago',
@@ -234,9 +293,8 @@ const messages = ref<Message[]>([
   },
   {
     id: '4',
-    client: 'Wayne Enterprises',
     service: 'AWS',
-    phoneNumber: '+1 (555) 456-7890',
+    number: '+1 (555) 456-7890',
     sender: '+1 (844) 289-1056',
     content: 'Your security code is 914852',
     time: '2 hours ago',
@@ -244,42 +302,11 @@ const messages = ref<Message[]>([
   },
   {
     id: '5',
-    client: 'Acme Corp',
     service: 'Microsoft',
-    phoneNumber: '+1 (555) 123-4567',
+    number: '+1 (555) 123-4567',
     sender: '+1 (844) 743-9612',
-    content: 'Microsoft verification code: 593741',
+    content: 'Your verification code is 123456',
     time: '3 hours ago',
-    read: true
-  },
-  {
-    id: '6',
-    client: 'Umbrella Corp',
-    service: 'Google',
-    phoneNumber: '+1 (555) 567-8901',
-    sender: '+1 (844) 921-5463',
-    content: 'G-782940 is your Google verification code.',
-    time: '5 hours ago',
-    read: true
-  },
-  {
-    id: '7',
-    client: 'Globex Inc',
-    service: 'GitHub',
-    phoneNumber: '+1 (555) 234-5678',
-    sender: '+1 (844) 384-9172',
-    content: 'Your GitHub code is: 127854',
-    time: 'Yesterday',
-    read: true
-  },
-  {
-    id: '8',
-    client: 'Stark Industries',
-    service: 'Salesforce',
-    phoneNumber: '+1 (555) 345-6789',
-    sender: '+1 (844) 983-2461',
-    content: 'Use code 831654 to verify your Salesforce identity',
-    time: 'Yesterday',
     read: true
   }
 ]);
@@ -300,29 +327,35 @@ const unreadCount = computed(() => messages.value.filter(m => !m.read).length);
 const readCount = computed(() => messages.value.filter(m => m.read).length);
 
 // Get unique client names for filter
-const uniqueClients = computed(() => {
-  return [...new Set(messages.value.map(message => message.client))];
+const uniqueNumbers = computed(() => {
+  return [...new Set(messages.value.map(message => message.number))];
+});
+
+// Computed property for all available services
+const availableServices = computed(() => {
+  const services = new Set<string>();
+  messages.value.forEach(message => {
+    if (message.service) services.add(message.service);
+  });
+  return Array.from(services).sort();
 });
 
 // Filter messages based on status, search, and client filter
 const filteredMessages = computed(() => {
   return messages.value.filter(message => {
-    // Apply read/unread status filter
-    const matchesStatus = 
-      statusFilter.value === '' || 
-      (statusFilter.value === 'unread' && !message.read) || 
-      (statusFilter.value === 'read' && message.read);
-    
-    // Apply search filter
-    const matchesSearch = searchQuery.value === '' || 
-      message.content.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-      message.client.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
+    const matchesSearch = !searchQuery.value || 
+      message.content.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       message.service.toLowerCase().includes(searchQuery.value.toLowerCase());
     
-    // Apply client filter
-    const matchesClient = clientFilter.value === '' || message.client === clientFilter.value;
+    const matchesStatus = !statusFilter.value || 
+      (statusFilter.value === 'unread' && !message.read) ||
+      (statusFilter.value === 'read' && message.read);
     
-    return matchesStatus && matchesSearch && matchesClient;
+    const matchesNumber = !numberFilter.value || message.number === numberFilter.value;
+    
+    const matchesService = !selectedService.value || message.service === selectedService.value;
+    
+    return matchesSearch && matchesStatus && matchesNumber && matchesService;
   });
 });
 
@@ -335,7 +368,7 @@ const markAsRead = (message: Message) => {
     messages.value[index] = { ...messages.value[index], read: true };
 
     // Show a toast or notification (in a real app)
-    console.log(`Marked message from ${message.client} as read`);
+    console.log(`Marked message from ${message.service} as read`);
     
     // If we're in unread view and all messages are now read, we'll show the empty state
     if (statusFilter.value === 'unread' && unreadCount.value === 0) {
