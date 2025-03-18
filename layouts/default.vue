@@ -22,10 +22,10 @@
             Dashboard
           </NuxtLink>
           
-          <NuxtLink to="/clients" class="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-            :class="$route.path.startsWith('/clients') ? 'bg-primary/10 text-primary' : 'text-gray-700 dark:text-gray-300'">
-            <Icon name="lucide:users" class="w-5 h-5 mr-3" />
-            Clients
+          <NuxtLink to="/numbers" class="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+            :class="$route.path.startsWith('/numbers') ? 'bg-primary/10 text-primary' : 'text-gray-700 dark:text-gray-300'">
+            <Icon name="lucide:phone" class="w-5 h-5 mr-3" />
+            Numbers
           </NuxtLink>
           
           <NuxtLink to="/settings" class="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -126,7 +126,7 @@ const applyTheme = () => {
 // Compute page title based on route
 const pageTitle = computed(() => {
   if (route.path === '/') return 'Dashboard';
-  if (route.path.startsWith('/clients')) return 'Clients';
+  if (route.path.startsWith('/numbers')) return 'Numbers';
   if (route.path.startsWith('/messages')) return 'Dashboard';
   if (route.path.startsWith('/settings')) return 'Settings';
   

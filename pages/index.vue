@@ -4,8 +4,8 @@
     <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
       <div class="container mx-auto px-6 pt-24 pb-16 md:pt-32 md:pb-24">
         <div class="max-w-4xl mx-auto text-center">
-          <h1 class="text-4xl md:text-6xl font-bold mb-6">Multi-Factor Authentication Made Simple</h1>
-          <p class="text-xl md:text-2xl mb-8">Secure your customers' accounts with our easy-to-use MFA service for service providers.</p>
+          <h1 class="text-4xl md:text-6xl font-bold mb-6">Secure Your Business Authentication</h1>
+          <p class="text-xl md:text-2xl mb-8">Manage all your 2FA codes in one place. Share access with your team and vendors securely.</p>
           <div class="flex flex-col sm:flex-row justify-center gap-4">
             <NuxtLink to="/signup" class="px-8 py-3 bg-white text-blue-700 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors">
               Get Started
