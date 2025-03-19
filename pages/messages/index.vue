@@ -1,11 +1,14 @@
 <template>
   <div class="space-y-6">
+    <!-- Role Switcher (for demo purposes) -->
+    <RoleSwitcher />
+
     <!-- Header with filters -->
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
       <div class="space-y-4">
         <!-- First row: Title -->
-        <div class="flex items-center">
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h2>
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Messages</h2>
         </div>
 
         <!-- Second row: Search and Filters -->
@@ -23,28 +26,51 @@
             />
           </div>
 
-          <!-- Service Filter -->
-          <div class="w-48">
-            <select
-              v-model="selectedService"
-              class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
+          <!-- Filter Section -->
+          <div class="flex items-center space-x-4">
+            <!-- Status Filter (shown to all users) -->
+            <select 
+              v-model="statusFilter" 
+              class="block w-32 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="all">All</option>
+              <option value="unread">Unread</option>
+              <option value="read">Read</option>
+            </select>
+
+            <!-- Client Filter (only for external users) -->
+            <select 
+              v-if="isExternal"
+              v-model="selectedClient" 
+              class="block w-48 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option :value="null">All Clients</option>
+              <option v-for="client in clients" :key="client.id" :value="client.id">
+                {{ client.name }}
+              </option>
+            </select>
+
+            <!-- Service Filter (only for non-external users) -->
+            <select 
+              v-if="!isExternal"
+              v-model="selectedService" 
+              class="block w-48 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
             >
               <option value="">All Services</option>
-              <option v-for="service in availableServices" :key="service" :value="service">
+              <option v-for="service in services" :key="service" :value="service">
                 {{ service }}
               </option>
             </select>
-          </div>
 
-          <!-- Number Filter -->
-          <div class="w-64">
-            <select
-              v-model="numberFilter"
-              class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
+            <!-- Number Filter (only for non-external users) -->
+            <select 
+              v-if="!isExternal"
+              v-model="selectedNumber" 
+              class="block w-48 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-100"
             >
               <option value="">All Numbers</option>
-              <option v-for="number in uniqueNumbers" :key="number" :value="number">
-                {{ number }} ({{ getNumberLabel(number) }})
+              <option v-for="number in numbers" :key="number" :value="number">
+                {{ number }}
               </option>
             </select>
           </div>
@@ -58,9 +84,9 @@
         <div class="bg-primary/10 rounded-full p-6 mb-6">
           <Icon name="lucide:shield-check" class="h-16 w-16 text-primary" />
         </div>
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Welcome to MFA!</h3>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ welcomeMessage }}</h3>
         <p class="text-gray-500 dark:text-gray-400 max-w-lg mb-8">
-          We've provisioned your first 2FA number to help you get started.
+          {{ welcomeDescription }}
         </p>
         
         <div class="w-full max-w-md">
@@ -118,102 +144,40 @@
     <!-- Normal state content (search, filters, messages) -->
     <div v-else>
       <!-- Messages list -->
-      <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <!-- Empty state when no unread messages -->
-        <div v-if="statusFilter === 'unread' && unreadCount === 0" class="flex flex-col items-center justify-center py-12 px-4 text-center">
-          <div class="bg-gray-100 dark:bg-gray-700 rounded-full p-4 mb-4">
-            <Icon name="lucide:check-circle" class="h-12 w-12 text-primary" />
-          </div>
-          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">All caught up!</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 max-w-md">
-            You have no unread messages. Check the "All Messages" view to see your message history.
-          </p>
-          <button 
-            @click="statusFilter = ''" 
-            class="mt-4 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            View all messages
-          </button>
-        </div>
-        
-        <ul v-else role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
-          <li 
-            v-for="(message, index) in filteredMessages" 
-            :key="index" 
-            class="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700"
-            :class="{'bg-primary/5 dark:bg-primary/10': !message.read}"
-          >
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <div 
-                    class="h-10 w-10 rounded-full flex items-center justify-center"
-                    :class="message.read ? 'bg-primary/10' : 'bg-primary/25'"
-                  >
-                    <Icon 
-                      name="lucide:shield" 
-                      class="h-5 w-5" 
-                      :class="message.read ? 'text-primary' : 'text-primary-dark'"
-                    />
-                  </div>
-                </div>
-                <div class="ml-4">
-                  <div class="flex flex-wrap items-center">
-                    <h2 
-                      class="text-sm font-medium dark:text-gray-100"
-                      :class="message.read ? 'text-gray-900' : 'text-gray-900 font-semibold'"
-                    >
-                      {{ message.service }}
-                    </h2>
-                    <span class="ml-2 mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                      {{ message.number }}
-                    </span>
-                    <span v-if="!message.read" class="ml-2 mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary">
-                      New
-                    </span>
-                  </div>
-                  <div class="mt-1 flex items-center">
-                    <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      From: {{ message.sender }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="flex flex-col items-start sm:items-end mt-2 sm:mt-0">
-                <span class="text-sm text-gray-500 dark:text-gray-400">{{ message.time }}</span>
-                <span class="mt-1 text-xs text-gray-500 dark:text-gray-400" v-if="message.read">
-                  <Icon name="lucide:check" class="inline h-3.5 w-3.5 mr-1" />Read
+      <div class="bg-white dark:bg-gray-800 shadow rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
+        <div v-for="message in filteredMessages" :key="message.id" class="p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                {{ message.service }}
+                <span v-if="isExternal" class="ml-2 mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                  {{ getClientName(message.clientId) }}
                 </span>
-              </div>
-            </div>
-            
-            <!-- Message content and actions on the same line -->
-            <div class="mt-2 flex items-start justify-between">
-              <p 
-                class="text-sm font-mono p-2 rounded flex-grow"
-                :class="message.read 
-                  ? 'text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700' 
-                  : 'text-gray-900 dark:text-white font-medium bg-gray-100 dark:bg-gray-700 border-l-4 border-primary'"
-              >
-                {{ message.content }}
+                <span v-if="!message.read" class="ml-2 mt-1 sm:mt-0 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary">
+                  New
+                </span>
+              </h2>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {{ message.number }}
               </p>
-              
-              <button 
-                v-if="!message.read"
-                @click="markAsRead(message)"
-                type="button" 
-                class="ml-4 mt-1 inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary whitespace-nowrap"
-              >
-                <Icon name="lucide:check" class="mr-1 h-3.5 w-3.5" />
-                Mark as read
-              </button>
             </div>
-          </li>
-          
-          <li v-if="filteredMessages.length === 0 && statusFilter !== 'unread'" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
-            No messages found
-          </li>
-        </ul>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              {{ message.time }}
+            </div>
+          </div>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">{{ message.content }}</p>
+        </div>
+
+        <!-- Empty State -->
+        <div v-if="filteredMessages.length === 0" class="p-6 text-center">
+          <div class="mx-auto h-12 w-12 text-gray-400">
+            <Icon name="lucide:inbox" class="h-12 w-12" />
+          </div>
+          <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No messages</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ searchQuery ? 'Try adjusting your search term.' : 'No messages to display.' }}
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -222,13 +186,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useUserRole } from '~/composables/useUserRole';
+import RoleSwitcher from '~/components/RoleSwitcher.vue';
 
 const route = useRoute();
 const router = useRouter();
+const { isAdmin, isUser, isExternal, canManageNumbers, canManageUsers, canManageSettings } = useUserRole();
 const searchQuery = ref('');
 const numberFilter = ref('');
-const statusFilter = ref('unread'); // Default to unread messages
+const statusFilter = ref('all');
 const selectedService = ref('');
+const selectedClient = ref(null);
+const selectedNumber = ref('');
 
 // Function to get number label
 function getNumberLabel(number: string): string {
@@ -253,61 +222,66 @@ onMounted(() => {
 
 // Interface for message
 interface Message {
-  service: string;
+  id: string;
   number: string;
-  sender: string;
+  service: string;
   content: string;
   time: string;
   read: boolean;
-  id?: string;
+  clientId: number;
+}
+
+interface Client {
+  id: number;
+  name: string;
 }
 
 // Mock message data
 const messages = ref<Message[]>([
   {
     id: '1',
-    service: 'QuickBooks',
+    service: 'Google',
     number: '+1 (555) 123-4567',
-    sender: '+1 (844) 472-3829',
     content: 'Your verification code is 472931',
     time: '5 minutes ago',
-    read: false
+    read: false,
+    clientId: 1
   },
   {
     id: '2',
-    service: 'Xero',
+    service: 'Amazon',
     number: '+1 (555) 234-5678',
-    sender: '+1 (844) 387-9120',
     content: 'Use 893421 as your login code',
     time: '18 minutes ago',
-    read: false
+    read: false,
+    clientId: 1
   },
   {
     id: '3',
-    service: 'NetSuite',
+    service: 'Microsoft',
     number: '+1 (555) 345-6789',
-    sender: '+1 (844) 629-3857',
     content: '325790 is your authentication code',
     time: '1 hour ago',
-    read: true
+    read: true,
+    clientId: 2
   },
   {
     id: '4',
-    service: 'AWS',
+    service: 'Apple',
     number: '+1 (555) 456-7890',
-    sender: '+1 (844) 289-1056',
     content: 'Your security code is 914852',
     time: '2 hours ago',
-    read: true
+    read: true,
+    clientId: 2
   },
   {
     id: '5',
-    service: 'Microsoft',
-    number: '+1 (555) 123-4567',
-    sender: '+1 (844) 743-9612',
+    service: 'Facebook',
+    number: '+1 (555) 567-8901',
     content: 'Your verification code is 123456',
     time: '3 hours ago',
-    read: true
+    read: true,
+    clientId: 1
   }
 ]);
 
@@ -340,22 +314,24 @@ const availableServices = computed(() => {
   return Array.from(services).sort();
 });
 
-// Filter messages based on status, search, and client filter
+// Filter messages based on selected filters
 const filteredMessages = computed(() => {
+  if (!messages.value) return [];
+  
   return messages.value.filter(message => {
-    const matchesSearch = !searchQuery.value || 
-      message.content.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      message.service.toLowerCase().includes(searchQuery.value.toLowerCase());
-    
-    const matchesStatus = !statusFilter.value || 
+    const matchesSearch = message.content.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const matchesStatus = statusFilter.value === 'all' || 
       (statusFilter.value === 'unread' && !message.read) ||
       (statusFilter.value === 'read' && message.read);
     
-    const matchesNumber = !numberFilter.value || message.number === numberFilter.value;
+    // Client filter for external users
+    const matchesClient = !selectedClient.value || message.clientId === selectedClient.value;
     
-    const matchesService = !selectedService.value || message.service === selectedService.value;
+    // Service and number filters for non-external users
+    const matchesService = isExternal.value || !selectedService.value || message.service === selectedService.value;
+    const matchesNumber = isExternal.value || !selectedNumber.value || message.number === selectedNumber.value;
     
-    return matchesSearch && matchesStatus && matchesNumber && matchesService;
+    return matchesSearch && matchesStatus && matchesClient && matchesService && matchesNumber;
   });
 });
 
@@ -376,4 +352,39 @@ const markAsRead = (message: Message) => {
     }
   }
 };
+
+// Update FTU welcome message based on role
+const welcomeMessage = computed(() => {
+  if (isAdmin.value) return 'Welcome, Admin!';
+  if (isUser.value) return 'Welcome to MFA!';
+  return 'Welcome, External User!';
+});
+
+const welcomeDescription = computed(() => {
+  if (isAdmin.value) return 'You have full access to manage numbers, users, and settings.';
+  if (isUser.value) return 'You can view and manage your 2FA codes. Contact your admin for additional access.';
+  return 'You can manage users and view numbers, but cannot add new numbers.';
+});
+
+// Sample data - in a real app, this would come from an API
+const clients = ref<Client[]>([
+  { id: 1, name: 'Acme Corporation' },
+  { id: 2, name: 'TechStart Inc' }
+]);
+
+// Helper function to get client name
+const getClientName = (clientId: number): string => {
+  const client = clients.value.find(c => c.id === clientId);
+  return client ? client.name : 'Unknown Client';
+};
+
+// Available services and numbers (for non-external users)
+const services = ref(['Google', 'Amazon', 'Microsoft', 'Apple', 'Facebook']);
+const numbers = ref([
+  '+1 (555) 123-4567',
+  '+1 (555) 234-5678',
+  '+1 (555) 345-6789',
+  '+1 (555) 456-7890',
+  '+1 (555) 567-8901'
+]);
 </script> 

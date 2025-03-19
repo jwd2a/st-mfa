@@ -16,22 +16,18 @@
         
         <!-- Navigation -->
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-          <NuxtLink to="/messages" class="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-            :class="$route.path === '/' || $route.path.startsWith('/messages') ? 'bg-primary/10 text-primary' : 'text-gray-700 dark:text-gray-300'">
-            <Icon name="lucide:home" class="w-5 h-5 mr-3" />
-            Dashboard
-          </NuxtLink>
-          
-          <NuxtLink to="/numbers" class="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-            :class="$route.path.startsWith('/numbers') ? 'bg-primary/10 text-primary' : 'text-gray-700 dark:text-gray-300'">
-            <Icon name="lucide:phone" class="w-5 h-5 mr-3" />
-            Numbers
-          </NuxtLink>
-          
-          <NuxtLink to="/settings" class="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-            :class="$route.path.startsWith('/settings') ? 'bg-primary/10 text-primary' : 'text-gray-700 dark:text-gray-300'">
-            <Icon name="lucide:settings" class="w-5 h-5 mr-3" />
-            Settings
+          <NuxtLink 
+            v-for="item in navigationItems" 
+            :key="item.to"
+            :to="item.to" 
+            class="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+            :class="$route.path.startsWith(item.to) ? 'bg-primary/10 text-primary' : 'text-gray-700 dark:text-gray-300'"
+          >
+            <Icon :name="item.icon" class="w-5 h-5 mr-3" />
+            <span class="flex-1">{{ item.name }}</span>
+            <span v-if="item.badge" class="ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              {{ item.badge }}
+            </span>
           </NuxtLink>
         </nav>
         
@@ -45,7 +41,13 @@
             </div>
             <div class="ml-3">
               <p class="text-sm font-medium text-gray-700 dark:text-gray-300">John Doe</p>
-              <p class="text-xs font-medium text-gray-500">john@example.com</p>
+              <p class="text-xs font-medium text-gray-500">
+                {{ isAdmin ? 'Admin' : 
+                   isUser ? 'User' : 
+                   isExternalAdmin ? 'External Admin' : 
+                   'External User' 
+                }}
+              </p>
             </div>
           </div>
         </div>
@@ -90,9 +92,45 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useUserRole } from '~/composables/useUserRole';
 
 const route = useRoute();
 const isSidebarOpen = ref(false);
+const { isAdmin, isUser, isExternal, isExternalAdmin, isExternalUser } = useUserRole();
+
+// Navigation items based on role
+const navigationItems = computed(() => {
+  const items = [
+    {
+      name: 'Dashboard',
+      icon: 'lucide:home',
+      to: '/messages',
+      show: true // Available to all roles
+    },
+    {
+      name: 'Numbers',
+      icon: 'lucide:phone',
+      to: '/numbers',
+      show: isAdmin.value // Only admin
+    },
+    {
+      name: 'Clients',
+      icon: 'lucide:briefcase',
+      to: '/clients',
+      show: isExternalAdmin.value // Only external-admin can see clients
+    },
+    {
+      name: 'Settings',
+      icon: 'lucide:settings',
+      to: '/settings',
+      show: true, // All roles can see settings
+      badge: isAdmin.value ? undefined :
+             isExternalAdmin.value ? 'Team' : 'Profile'
+    }
+  ];
+  
+  return items.filter(item => item.show);
+});
 
 // Theme toggle functionality
 const isDarkMode = ref(false);
