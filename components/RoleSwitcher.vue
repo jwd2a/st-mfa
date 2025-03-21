@@ -41,7 +41,7 @@ const roles = [
     activeClass: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
   },
   { 
-    label: 'External Admin', 
+    label: 'Provider - Admin', 
     value: 'external-admin' as UserRole,
     activeClass: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400'
   },

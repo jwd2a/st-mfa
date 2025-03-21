@@ -44,7 +44,7 @@
               <p class="text-xs font-medium text-gray-500">
                 {{ isAdmin ? 'Admin' : 
                    isUser ? 'User' : 
-                   isExternalAdmin ? 'External Admin' : 
+                   isExternalAdmin ? 'Provider - Admin' : 
                    'External User' 
                 }}
               </p>
@@ -111,6 +111,12 @@ const navigationItems = computed(() => {
       name: 'Numbers',
       icon: 'lucide:phone',
       to: '/numbers',
+      show: isAdmin.value // Only admin
+    },
+    {
+      name: 'Providers',
+      icon: 'lucide:building-2',
+      to: '/providers',
       show: isAdmin.value // Only admin
     },
     {

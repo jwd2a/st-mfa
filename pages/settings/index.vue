@@ -121,10 +121,10 @@
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
-                {{ isAdmin ? 'Team Management' : 'Internal Team Members' }}
+                Internal Team Members
               </h3>
               <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-                {{ isAdmin ? 'Manage all team members and their roles.' : 'Manage access for your internal team members.' }}
+                Manage your internal team members and their roles.
               </p>
             </div>
             <button
@@ -132,7 +132,7 @@
               class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               <Icon name="lucide:user-plus" class="-ml-1 mr-2 h-5 w-5" />
-              {{ isAdmin ? 'Add User' : 'Invite Team Member' }}
+              Add Team Member
             </button>
           </div>
         </div>
@@ -150,7 +150,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
-                <tr v-for="member in teamMembers.filter(m => isAdmin || m.type === 'Internal')" :key="member.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr v-for="member in teamMembers.filter(m => m.type === 'Internal')" :key="member.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                       <div class="h-10 w-10 flex-shrink-0">
@@ -509,16 +509,7 @@
                   <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ number.label }}</span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">{{ number.number }}</span>
                 </div>
-                <span class="ml-2 flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full" :class="{
-                  'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400': number.service === 'Google',
-                  'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400': number.service === 'AWS',
-                  'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400': number.service === 'Microsoft',
-                  'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400': number.service === 'GitHub',
-                  'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400': number.service === 'Stripe',
-                  'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400': number.service === 'Cloudflare',
-                  'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400': number.service === 'MongoDB',
-                  'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400': number.service === 'Salesforce'
-                }">
+                <span class="ml-2 flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full" :class="getServiceBadgeClass(number.service)">
                   {{ number.service }}
                 </span>
               </div>
@@ -684,11 +675,19 @@ const closeInviteModal = () => {
 
 const submitInvite = async () => {
   try {
-    // Handle invite submission
-    await submitTeamInvite({
-      ...inviteForm.value,
-      invitedBy: isExternalAdmin.value ? 'external-admin' : 'admin'
-    });
+    if (inviteForm.value.userType === 'external') {
+      // Handle provider member invite
+      await submitProviderMemberInvite({
+        ...inviteForm.value,
+        invitedBy: 'admin'
+      });
+    } else {
+      // Handle internal team invite
+      await submitTeamInvite({
+        ...inviteForm.value,
+        invitedBy: isExternalAdmin.value ? 'external-admin' : 'admin'
+      });
+    }
     closeInviteModal();
   } catch (error) {
     console.error('Failed to send invite:', error);
@@ -935,6 +934,86 @@ const billingHistory = ref([
     invoice: 'INV-2024-002'
   }
 ]);
+
+// Add providers data
+const providers = ref([
+  {
+    id: 1,
+    name: 'Acme Security',
+    email: 'team@acmesecurity.com',
+    status: 'Active',
+    avatar: 'https://ui-avatars.com/api/?name=Acme+Security&background=6366f1&color=fff',
+    assignedNumbers: 3,
+    members: [
+      {
+        id: 1,
+        name: 'John Smith',
+        email: 'john@acmesecurity.com',
+        role: 'external-admin'
+      },
+      {
+        id: 2,
+        name: 'Sarah Wilson',
+        email: 'sarah@acmesecurity.com',
+        role: 'external-user'
+      }
+    ]
+  },
+  {
+    id: 2,
+    name: 'SecureAuth Partners',
+    email: 'support@secureauth.com',
+    status: 'Active',
+    avatar: 'https://ui-avatars.com/api/?name=SecureAuth+Partners&background=06b6d4&color=fff',
+    assignedNumbers: 5,
+    members: [
+      {
+        id: 3,
+        name: 'Mike Johnson',
+        email: 'mike@secureauth.com',
+        role: 'external-admin'
+      }
+    ]
+  }
+]);
+
+// Add provider management methods
+const editProvider = (provider) => {
+  // TODO: Implement provider editing
+  console.log('Editing provider:', provider);
+};
+
+const addProviderMember = (provider) => {
+  inviteForm.value = {
+    email: '',
+    userType: 'external',
+    role: 'external-user',
+    selectedNumbers: [],
+    providerId: provider.id
+  };
+  showInviteModal.value = true;
+};
+
+// Add provider-specific API functions
+const submitProviderMemberInvite = async (inviteData) => {
+  // TODO: Implement API call
+  console.log('Submitting provider member invite:', inviteData);
+};
+
+function getServiceBadgeClass(service) {
+  const serviceClasses = {
+    'Google': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+    'AWS': 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+    'Microsoft': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    'GitHub': 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+    'Stripe': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400',
+    'Cloudflare': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+    'MongoDB': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    'Salesforce': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+  };
+  
+  return serviceClasses[service] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+}
 </script>
 
 <style scoped>

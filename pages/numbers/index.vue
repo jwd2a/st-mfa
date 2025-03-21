@@ -71,7 +71,8 @@
               <span
                 v-for="service in number.services"
                 :key="service"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                :class="serviceTagClass"
               >
                 {{ service }}
               </span>
@@ -85,7 +86,8 @@
               <span
                 v-for="user in number.users"
                 :key="user.email"
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                :class="userTagClass"
               >
                 {{ user.name }}
               </span>
@@ -143,12 +145,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import AddNumberModal from '~/components/AddNumberModal.vue';
 import { useUserRole } from '~/composables/useUserRole';
 import RoleSwitcher from '~/components/RoleSwitcher.vue';
 
 const { isAdmin, isUser, isExternal, canManageNumbers } = useUserRole();
+
+// Define class variables to avoid duplicate keys in objects
+const serviceTagClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+const userTagClass = 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
 
 interface Number {
   id: string;
